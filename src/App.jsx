@@ -4,11 +4,19 @@ import SearchBox from "./components/SearchBox/SearchBox";
 import ContactForm from "./components/ContactForm/ContactForm";
 import contactsTodo from "./contactsTodo.json";
 import "modern-normalize";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { nanoid } from "nanoid";
 
 const App = () => {
-  const [contacts, setContacts] = useState(contactsTodo);
+  const [contacts, setContacts] = useState(() => {
+    const savedContacts = window.localStorage.getItem("saved-contacts");
+
+    if (savedContacts !== null) {
+      return JSON.parse(savedContacts);
+    }
+
+    return contactsTodo;
+  });
 
   const [inputValue, setInputValue] = useState("");
 
@@ -32,6 +40,10 @@ const App = () => {
       return prev.filter((contact) => contact.id !== id);
     });
   };
+
+  useEffect(() => {
+    window.localStorage.setItem("saved-contacts", JSON.stringify(contacts));
+  }, [contacts]);
 
   return (
     <div className={s.wrapper}>
