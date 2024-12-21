@@ -1,68 +1,45 @@
-import "./App.css";
+import s from "./App.module.css";
+import ContactList from "./components/ContactList/ContactList";
+import SearchBox from "./components/SearchBox/SearchBox";
+import ContactForm from "./components/ContactForm/ContactForm";
+import contactsTodo from "./contactsTodo.json";
 import "modern-normalize";
-import Description from "./components/Description/Description";
-import Options from "./components/Options/Options";
-import Feedback from "./components/Feedback/Feedback";
-import Notification from "./components/Notification/Notification";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { nanoid } from "nanoid";
 
 const App = () => {
-  const [response, setResponse] = useState(() => {
-    const savedResponse = window.localStorage.getItem("saved-response");
+  const [contacts, setContacts] = useState(contactsTodo);
 
-    if (savedResponse !== null) {
-      return JSON.parse(savedResponse);
-    }
+  const [inputValue, setInputValue] = useState("");
 
-    return {
-      good: 0,
-      neutral: 0,
-      bad: 0,
-    };
-  });
-  const updateFeedback = (feedbackType) => {
-    setResponse((prev) => ({
-      ...prev,
-      [feedbackType]: prev[feedbackType] + 1,
-    }));
+  const handleChange = (e) => {
+    setInputValue(e.target.value);
   };
 
-  const totalFeedback = response.good + response.neutral + response.bad;
-
-  const positiveFeedback = Math.round((response.good / totalFeedback) * 100);
-
-  const resetClick = () => {
-    setResponse({
-      good: 0,
-      neutral: 0,
-      bad: 0,
+  const addNewContact = (values) => {
+    const newContact = { ...values, id: nanoid() };
+    setContacts((prev) => {
+      return [...prev, newContact];
     });
   };
 
-  useEffect(() => {
-    window.localStorage.setItem("saved-response", JSON.stringify(response));
-  }, [response]);
+  const visibleContacts = contacts.filter((contact) =>
+    contact.name.toLocaleLowerCase().includes(inputValue.toLocaleLowerCase())
+  );
+
+  const deleteContact = (id) => {
+    setContacts((prev) => {
+      return prev.filter((contact) => contact.id !== id);
+    });
+  };
 
   return (
-    <>
-      <Description></Description>
-      <Options
-        handleClick={updateFeedback}
-        handleReset={resetClick}
-        total={totalFeedback}
-      ></Options>
-      {totalFeedback === 0 ? (
-        <Notification></Notification>
-      ) : (
-        <Feedback
-          good={response.good}
-          neutral={response.neutral}
-          bad={response.bad}
-          total={totalFeedback}
-          positive={positiveFeedback}
-        />
-      )}
-    </>
+    <div className={s.wrapper}>
+      <h1 className={s.header}>Phonebook</h1>
+      <ContactForm addNewContact={addNewContact} />
+      <SearchBox value={inputValue} onChange={handleChange} />
+      <ContactList contacts={visibleContacts} onDelete={deleteContact} />
+    </div>
   );
 };
 
